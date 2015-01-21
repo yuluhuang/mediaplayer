@@ -39,8 +39,8 @@ public class MyActivityOO extends Activity {
     private IntentFilter intentFilter = null;
 
     private static int id = 1;  //文件id
-    private int STATE;//1:play,2:psuse,3:stop;//7：上一首 8：下一首
-    private int playstate = 4;//  4:顺序播放;5：单曲循环播放；6：随机；
+    private static int STATE;//1:play,2:psuse,3:stop;//7：上一首 8：下一首
+    private static int playstate = 4;//  4:顺序播放;5：单曲循环播放；6：随机；
 
     MMediaPlayer mMediaPlayer;
 
@@ -82,6 +82,7 @@ public class MyActivityOO extends Activity {
      * 根据state判断
      */
     private void stayPlayType() {
+
         if (STATE == 1) {
             play.setVisibility(View.GONE);
             pause.setVisibility(View.VISIBLE);
@@ -122,8 +123,8 @@ public class MyActivityOO extends Activity {
             @Override
             public void onClick(View v) {
                 mMediaPlayer.start();
-                play.setVisibility(View.GONE);
-                pause.setVisibility(View.VISIBLE);
+//                play.setVisibility(View.GONE);
+//                pause.setVisibility(View.VISIBLE);
             }
         });
 
@@ -134,8 +135,8 @@ public class MyActivityOO extends Activity {
             public void onClick(View v) {
 
                 mMediaPlayer.pause();
-                pause.setVisibility(View.GONE);
-                play.setVisibility(View.VISIBLE);
+//                pause.setVisibility(View.GONE);
+//                play.setVisibility(View.VISIBLE);
             }
         });
 
@@ -144,8 +145,8 @@ public class MyActivityOO extends Activity {
             @Override
             public void onClick(View v) {
                 mMediaPlayer.pre();
-                play.setVisibility(View.GONE);
-                pause.setVisibility(View.VISIBLE);
+//                play.setVisibility(View.GONE);
+//                pause.setVisibility(View.VISIBLE);
             }
         });
 
@@ -155,8 +156,8 @@ public class MyActivityOO extends Activity {
             @Override
             public void onClick(View v) {
                 mMediaPlayer.next();
-                play.setVisibility(View.GONE);
-                pause.setVisibility(View.VISIBLE);
+//                play.setVisibility(View.GONE);
+//                pause.setVisibility(View.VISIBLE);
             }
         });
 
@@ -167,8 +168,8 @@ public class MyActivityOO extends Activity {
             public void onClick(View v) {
 
                 mMediaPlayer.repeat();
-                repeat.setVisibility(View.GONE);
-                replay.setVisibility(View.VISIBLE);
+//                repeat.setVisibility(View.GONE);
+//                replay.setVisibility(View.VISIBLE);
             }
 
 
@@ -180,8 +181,8 @@ public class MyActivityOO extends Activity {
             @Override
             public void onClick(View v) {
                 mMediaPlayer.replay();
-                replay.setVisibility(View.GONE);
-                shuffle.setVisibility(View.VISIBLE);
+//                replay.setVisibility(View.GONE);
+//                shuffle.setVisibility(View.VISIBLE);
             }
         });
 
@@ -191,8 +192,8 @@ public class MyActivityOO extends Activity {
             @Override
             public void onClick(View v) {
                 mMediaPlayer.shuffle();
-                shuffle.setVisibility(View.GONE);
-                repeat.setVisibility(View.VISIBLE);
+//                shuffle.setVisibility(View.GONE);
+//                repeat.setVisibility(View.VISIBLE);
             }
         });
 

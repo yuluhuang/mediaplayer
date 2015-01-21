@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
@@ -53,37 +52,23 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
 
 
         if (mp == null) {
-            mp = new MediaPlayer();
-            initDatas();//实例化数据库
-            registerReceiver(receiver, init());
-            Log.e("service BroadcastReceiver ", "注册广播");
+            synchronized (MyService.class){
+                if(mp==null){
+                    mp = new MediaPlayer();
+                    initDatas();//实例化数据库
+                    registerReceiver(receiver, init());
+                    Log.e("service BroadcastReceiver ", "注册广播");
+                }
+            }
         }
-
-        startService();
-
-
-        //系统通知 TODO 添加播放操作
-        String songName;
-        // assign the song name to songName
-        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0,
-                new Intent(getApplicationContext(), PlayActivity.class),
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        Notification notification = new Notification();
-        notification.tickerText = "111";
-        notification.icon = R.drawable.icon;
-        notification.flags |= Notification.FLAG_ONGOING_EVENT;
-        notification.setLatestEventInfo(getApplicationContext(), "MusicPlayerSample",
-                "Playing: " + id, pi);
-        startForeground(1, notification);
-
         return super.onStartCommand(intent, flags, startId);
     }
 
-    private void startService() {
+    private void startPlay() {
 
         try {
             if (mp != null && STATE == 2) {
-                Log.e("startService pause", "" + STATE);
+                Log.e("startPlay pause", "" + STATE);
                 mp.pause();
             }
         } catch (Exception e) {
@@ -111,9 +96,6 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
 
 
     private void initMediaPlayer() {
-
-        synchronized (this) {
-
             try {
                 mp.reset();
                 //mp=MediaPlayer.create(MyActivity.this,Uri.parse(list.get(id).getFilePath()));
@@ -134,7 +116,7 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
             } catch (Exception e) {
                 STATE =2;
             }
-        }
+
     }
 
 
@@ -241,6 +223,7 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
         if (id <= list.size()) {
             initMediaPlayer();
         } else {
+            id=0;
             initMediaPlayer();
         }
     }
@@ -279,11 +262,10 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
 
                 if (STATE == 9) {
                     STATE =1;
-                    //listview 进来
+                    //上。下一首 。listview 进来
                     initMediaPlayer();//直接播放
                 } else if (STATE == 1 || STATE == 2) {
-                    //上。下一首 =>1
-                    startService();//判断状态 后决定是否播放
+                    startPlay();//判断状态 后决定是否播放
                 }
             }
         }

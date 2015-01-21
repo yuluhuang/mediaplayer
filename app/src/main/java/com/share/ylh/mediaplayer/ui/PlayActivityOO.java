@@ -54,8 +54,8 @@ public class PlayActivityOO extends ActionBarActivity implements IshowShareView 
     //myservice=>2activity 保存状态
     private static final String ACTION_SAVESTATE = "com.share.ylh.mediaplayer.SAVESTATE";
     private static int id;  //文件id
-    private int STATE;//1:play,2:psuse,3:stop;//7：上一首 8：下一首
-    private int playstate;//  4:顺序播放;5：单曲循环播放；6：随机；
+    private static int STATE;//1:play,2:psuse,3:stop;//7：上一首 8：下一首
+    private static int playstate;//  4:顺序播放;5：单曲循环播放；6：随机；
     private static final int DONE = 1;
     private static int ListViewpostion;
 
@@ -247,7 +247,7 @@ public class PlayActivityOO extends ActionBarActivity implements IshowShareView 
             @Override
             public void onClick(View v) {
                 mMediaPlayer.pre();
-                playingView();//页面的变化
+                //playingView();//页面的变化
 
             }
         });
@@ -257,7 +257,7 @@ public class PlayActivityOO extends ActionBarActivity implements IshowShareView 
             public void onClick(View v) {
 
                 mMediaPlayer.next();
-                playingView();
+                //playingView();
             }
         });
         playerplaybtn.setOnClickListener(new View.OnClickListener() {
@@ -265,7 +265,7 @@ public class PlayActivityOO extends ActionBarActivity implements IshowShareView 
             public void onClick(View v) {
 
                 mMediaPlayer.start();
-                playingView();
+                //playingView();
             }
         });
         playerpausebtn.setOnClickListener(new View.OnClickListener() {
@@ -273,7 +273,7 @@ public class PlayActivityOO extends ActionBarActivity implements IshowShareView 
             public void onClick(View v) {
 
                 mMediaPlayer.pause();
-                pausingView();
+                //pausingView();
             }
         });
 

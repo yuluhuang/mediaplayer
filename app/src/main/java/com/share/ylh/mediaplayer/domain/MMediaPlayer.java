@@ -6,6 +6,8 @@ import android.widget.Toast;
 import com.share.ylh.mediaplayer.base.BaseApp;
 import com.share.ylh.mediaplayer.service.MyService;
 import com.share.ylh.mediaplayer.ui.MyActivityOO;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,20 +19,16 @@ import java.util.List;
 public class MMediaPlayer {
     //2activity=>myservice 播放音乐
     private static final String ACTION_PLAY = "com.share.ylh.mediaplayer.PLAY";
-    //myservice=>2activity 保存状态
-    private static final String ACTION_SAVESTATE = "com.share.ylh.mediaplayer.SAVESTATE";
-    //myservice->MyActivity 更新进度条
-    private static final String ACTION_progressbar = "com.share.ylh.mediaplayer.progressbar";
 
     private static int id=0;  //文件id
-    private int STATE;//1:play,2:psuse,3:stop;//7：上一首 8：下一首
-    private int playstate=4;//  4:顺序播放;5：单曲循环播放；6：随机；
+    private static int STATE;//1:play,2:psuse,3:stop;//7：上一首 8：下一首
+    private static int playstate=4;//  4:顺序播放;5：单曲循环播放；6：随机；
 
     private  static MMediaPlayer mMediaPlayer;
-    private static List<FileInfo> list;
+    private static List<FileInfo> lists;
 
     public MMediaPlayer(List<FileInfo> list) {
-        this.list = list;
+        this.lists = list;
     }
 
 
@@ -86,10 +84,10 @@ public class MMediaPlayer {
 
 
     public void next() {
-        if ((id + 1) <= list.size()) {
+        if ((id + 1) <= lists.size()) {
             id = (id + 1);
         } else {
-            id = list.size();
+            id = lists.size();
             Toast.makeText(BaseApp.AppContext, "已经是最后一首歌", Toast.LENGTH_SHORT).show();
         }
         Log.e("playernextbtn====>id", "" + id);
@@ -97,6 +95,7 @@ public class MMediaPlayer {
         sendOperateBroadCast();
     }
 
+    //以下单击 状态变为下一级
     public void repeat() {
         STATE = 0;
         playstate = 5;
@@ -105,14 +104,14 @@ public class MMediaPlayer {
 
     public void shuffle() {
         STATE = 0;
-        playstate = 6;
+        playstate = 4;
         sendOperateBroadCast();
     }
 
 
     public void replay() {
         STATE = 0;
-        playstate = 4;
+        playstate = 6;
         sendOperateBroadCast();
     }
 
