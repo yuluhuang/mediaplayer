@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="80dp"
+              android:gravity="bottom"
+
+              android:layout_gravity="bottom">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:orientation="horizontal"
+        android:background="@color/gray"
+        >
+
+        <LinearLayout
+            android:id="@+id/toMyActivity"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="5"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/musicName"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="4">
+
+            <ImageView
+                android:id="@+id/playerprebtn"
+                android:layout_width="@dimen/midicon"
+                android:layout_height="match_parent"
+                android:src="@drawable/mini_pre_button"/>
+
+            <ImageView
+                android:id="@+id/playerplaybtn"
+                android:layout_width="@dimen/bigicon"
+                android:layout_height="match_parent"
+
+                android:src="@drawable/mini_play_button"
+                android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                android:layout_marginRight="@dimen/activity_horizontal_margin"/>
+
+            <ImageView
+                android:id="@+id/playerpausebtn"
+                android:layout_width="@dimen/bigicon"
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                android:src="@drawable/mini_pause_button"
+                android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                android:layout_marginRight="@dimen/activity_horizontal_margin"/>
+
+            <ImageView
+                android:id="@+id/playernextbtn"
+                android:layout_width="@dimen/midicon"
+                android:layout_height="match_parent"
+                android:src="@drawable/mini_next_button"/>
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>
