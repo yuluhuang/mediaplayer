@@ -53,7 +53,7 @@ public class PlayActivityOO extends ActionBarActivity implements IshowShareView 
 
     //myservice=>2activity 保存状态
     private static final String ACTION_SAVESTATE = "com.share.ylh.mediaplayer.SAVESTATE";
-    private static int id;  //文件id
+    private static int id=1;  //文件id
     private static int STATE;//1:play,2:psuse,3:stop;//7：上一首 8：下一首
     private static int playstate;//  4:顺序播放;5：单曲循环播放；6：随机；
     private static final int DONE = 1;
@@ -89,7 +89,7 @@ public class PlayActivityOO extends ActionBarActivity implements IshowShareView 
                         //先将
                         if (null == f) {
                             fileInfo = new FileInfo();
-                            fileInfo.setId(i);
+                            //fileInfo.setId(i); xutil序列自增
                             fileInfo.setFilePath(filelists.get(i).getFilePath());
                             db.save(fileInfo);
 
@@ -157,6 +157,9 @@ public class PlayActivityOO extends ActionBarActivity implements IshowShareView 
 
     private void adaptNodify() {
 
+//        SortList<FileInfo> sortList=new SortList<FileInfo>();
+//        sortList.sort(filelists,"getId","");
+
         adapter = new MyAdapter(getApplicationContext(), filelists, R.layout.player);
         mListView.setAdapter(adapter);
 
@@ -168,18 +171,25 @@ public class PlayActivityOO extends ActionBarActivity implements IshowShareView 
      * 重新扫描文件
      */
     private void searchMusic() {
+        if (!ViewUtil.ExistSDCard()) {
+            //TODO sd卡大小判断
+            ViewUtil.Loge("请插入sd卡");
+            mProgressDialog.dismiss();
+            return;
+        }
+        ViewUtil.Loge("sd卡可用");
 
         new Thread(new Runnable() {
             @Override
             public void run() {
 
                 filelists = ViewUtil.getMusicListOnSys(ViewUtil.getExternalStoragePath(), "mp3");
-
                 //保存歌曲数量
                 ViewUtil.setShardPString("count", filelists.size() + "");
                 Message message = Message.obtain();
                 message.what = DONE;
                 mhandler.sendMessage(message);
+
             }
         }).start();
     }

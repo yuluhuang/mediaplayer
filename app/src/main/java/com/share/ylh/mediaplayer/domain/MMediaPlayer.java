@@ -20,7 +20,7 @@ public class MMediaPlayer {
     //2activity=>myservice 播放音乐
     private static final String ACTION_PLAY = "com.share.ylh.mediaplayer.PLAY";
 
-    private static int id=0;  //文件id
+    private static int id=1;  //文件id
     private static int STATE;//1:play,2:psuse,3:stop;//7：上一首 8：下一首
     private static int playstate=4;//  4:顺序播放;5：单曲循环播放；6：随机；
 
@@ -71,27 +71,16 @@ public class MMediaPlayer {
 
     public void pre() {
 
-        if ((id - 1) >= 0) {
-            id = id - 1;
-        } else {
-            id = 0;
-            Toast.makeText(BaseApp.AppContext, "已经是第一首歌", Toast.LENGTH_SHORT).show();
-        }
         Log.e("playerprebtn====>id", "" + id);
-        STATE = 9;
+        STATE = 7;
         sendOperateBroadCast();
     }
 
 
     public void next() {
-        if ((id + 1) <= lists.size()) {
-            id = (id + 1);
-        } else {
-            id = lists.size();
-            Toast.makeText(BaseApp.AppContext, "已经是最后一首歌", Toast.LENGTH_SHORT).show();
-        }
+
         Log.e("playernextbtn====>id", "" + id);
-        STATE = 9;
+        STATE = 8;
         sendOperateBroadCast();
     }
 

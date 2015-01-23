@@ -13,14 +13,19 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.lidroid.xutils.DbUtils;
+import com.lidroid.xutils.db.sqlite.Selector;
 import com.lidroid.xutils.exception.DbException;
 import com.share.ylh.mediaplayer.R;
 import com.share.ylh.mediaplayer.base.BaseApp;
 import com.share.ylh.mediaplayer.domain.FileInfo;
+import com.share.ylh.mediaplayer.domain.LyricObject;
 import com.share.ylh.mediaplayer.domain.MMediaPlayer;
+import com.share.ylh.mediaplayer.utils.GetGeCi;
 import com.share.ylh.mediaplayer.utils.ViewUtil;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.TreeMap;
 
 
 public class MyActivityOO extends Activity {
@@ -43,6 +48,8 @@ public class MyActivityOO extends Activity {
     private static int playstate = 4;//  4:顺序播放;5：单曲循环播放；6：随机；
 
     MMediaPlayer mMediaPlayer;
+
+    private boolean isGetGeCi;
 
 
     @Override
@@ -168,8 +175,7 @@ public class MyActivityOO extends Activity {
             public void onClick(View v) {
 
                 mMediaPlayer.repeat();
-//                repeat.setVisibility(View.GONE);
-//                replay.setVisibility(View.VISIBLE);
+
             }
 
 
@@ -181,8 +187,7 @@ public class MyActivityOO extends Activity {
             @Override
             public void onClick(View v) {
                 mMediaPlayer.replay();
-//                replay.setVisibility(View.GONE);
-//                shuffle.setVisibility(View.VISIBLE);
+
             }
         });
 
@@ -192,8 +197,7 @@ public class MyActivityOO extends Activity {
             @Override
             public void onClick(View v) {
                 mMediaPlayer.shuffle();
-//                shuffle.setVisibility(View.GONE);
-//                repeat.setVisibility(View.VISIBLE);
+
             }
         });
 
@@ -254,6 +258,8 @@ public class MyActivityOO extends Activity {
         return intentFilter;
     }
 
+    private static Integer temptime = 0;
+    private List<LyricObject> lyricObjects;
     //接收跟新进度条的广播
     private BroadcastReceiver receiver = new BroadcastReceiver() {
 
@@ -262,9 +268,39 @@ public class MyActivityOO extends Activity {
             if (intent.getAction().equals(ACTION_progressbar)) {
                 int Current = intent.getIntExtra("Current", 0);
                 int Duration = intent.getIntExtra("Duration", 0);
+                boolean isGetGeCi = intent.getBooleanExtra("isDown", false);
                 //ViewUtil.Loge(Current+"==="+Duration);
+
                 progressBar.setMax(Duration);
                 progressBar.setProgress(Current);
+
+                if (isGetGeCi) {
+
+
+                    try {
+                        lyricObjects = db.findAll(Selector.from(LyricObject.class).where
+                                ("musciId", "=", id));
+                    } catch (DbException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (lyricObjects != null) {
+                        for (int i = 0; i < lyricObjects.size(); i++) {
+                            Integer key = (Integer) lyricObjects.get(i).getBegintime();
+                            if (temptime < Current && key > Current) {
+                                ViewUtil.Loge(Current + "===" + key);
+
+                                ViewUtil.ToastText(lyricObjects.get(i).getLrc(), true);
+                                try {
+                                    temptime = key; //记录上一句歌词的时间
+                                } catch (Exception e) {
+                                    temptime = 0;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
             }
 
             if (intent.getAction().equals(ACTION_SAVESTATE)) {

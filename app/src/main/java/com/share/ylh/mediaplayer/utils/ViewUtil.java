@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Environment;
 import android.os.StatFs;
 import android.util.Log;
 import android.widget.Toast;
@@ -17,7 +18,6 @@ import com.share.ylh.mediaplayer.ui.weibo.WeiBoActivityq;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -51,7 +51,6 @@ public class ViewUtil {
             Toast.makeText(BaseApp.AppContext, s,
                     Toast.LENGTH_SHORT).show();
         }
-
     }
 
     /**
@@ -279,5 +278,29 @@ public class ViewUtil {
 
     }
 
+
+    //SD卡是否存在
+    public static boolean ExistSDCard() {
+        if (android.os.Environment.getExternalStorageState().equals(
+                android.os.Environment.MEDIA_MOUNTED)) {
+            return true;
+        } else
+            return false;
+    }
+
+    //SD卡总容量
+    public long getSDAllSize(){
+        //取得SD卡文件路径
+        File path = Environment.getExternalStorageDirectory();
+        StatFs sf = new StatFs(path.getPath());
+        //获取单个数据块的大小(Byte)
+        long blockSize = sf.getBlockSize();
+        //获取所有数据块数
+        long allBlocks = sf.getBlockCount();
+        //返回SD卡大小
+        //return allBlocks * blockSize; //单位Byte
+        //return (allBlocks * blockSize)/1024; //单位KB
+        return (allBlocks * blockSize)/1024/1024; //单位MB
+    }
 
 }

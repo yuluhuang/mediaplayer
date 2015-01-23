@@ -27,7 +27,7 @@
 
         <!-- 主 Activity -->
         <activity
-            android:name=".ui.WelcomeActivity"
+            android:name=".ui.PlayActivityOO"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -38,13 +38,13 @@
         <activity
             android:configChanges="orientation|keyboardHidden"
             android:screenOrientation="portrait"
-            android:name=".ui.PlayActivity"
+            android:name=".ui.WelcomeActivity"
             android:label="@string/app_name"/>
 
         <activity
             android:configChanges="orientation|keyboardHidden"
             android:screenOrientation="portrait"
-            android:name=".ui.PlayActivityOO"
+            android:name=".ui.PlayActivity"
             android:label="@string/app_name"/>
 
         <activity

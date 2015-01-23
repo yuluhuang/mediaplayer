@@ -14,14 +14,18 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.lidroid.xutils.DbUtils;
+import com.lidroid.xutils.db.sqlite.Selector;
 import com.lidroid.xutils.exception.DbException;
 import com.share.ylh.mediaplayer.R;
 import com.share.ylh.mediaplayer.base.BaseApp;
 import com.share.ylh.mediaplayer.domain.FileInfo;
+import com.share.ylh.mediaplayer.domain.LyricObject;
 import com.share.ylh.mediaplayer.ui.PlayActivity;
+import com.share.ylh.mediaplayer.utils.GetGeCi;
 import com.share.ylh.mediaplayer.utils.ViewUtil;
 
 import java.util.List;
+import java.util.TreeMap;
 
 /**
  * User: 余芦煌(504367857@qq.com)
@@ -37,12 +41,14 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
     private static final String ACTION_SAVESTATE = "com.share.ylh.mediaplayer.SAVESTATE";
     //myservice->MyActivity 更新进度条
     private static final String ACTION_progressbar = "com.share.ylh.mediaplayer.progressbar";
-    private static int id = 0;  //文件id
-    private int STATE ;//1:play,2:psuse,3:stop;//7：上一首 8：下一首
+    private static int id = 1;  //文件id
+    private int STATE;//1:play,2:psuse,3:stop;//7：上一首 8：下一首
     private int playstate = 4;//  4:顺序播放;5：单曲循环播放；6：随机；
     private DbUtils db;
-    List<FileInfo> list;
+    private static List<FileInfo> list;
+    private static FileInfo fileInfo;
     MediaPlayer mp = null;
+    private boolean isprepare;
 
     private IntentFilter intentFilter = null;
 
@@ -52,9 +58,9 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
 
 
         if (mp == null) {
-            synchronized (MyService.class){
-                if(mp==null){
-                    mp = new MediaPlayer();
+            synchronized (MyService.class) {
+                if (mp == null) {
+
                     initDatas();//实例化数据库
                     registerReceiver(receiver, init());
                     Log.e("service BroadcastReceiver ", "注册广播");
@@ -96,26 +102,32 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
 
 
     private void initMediaPlayer() {
-            try {
-                mp.reset();
-                //mp=MediaPlayer.create(MyActivity.this,Uri.parse(list.get(id).getFilePath()));
-                // 设置指定的流媒体地址
-                mp.setDataSource(list.get(id).getFilePath());
-
-                // 设置音频流的类型
-                mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                mp.setOnPreparedListener(this);
-                mp.setOnErrorListener(this);
-                mp.setOnCompletionListener(this);
-                //Using wake locks  http://blog.csdn.net/shichaosong/article/details/8125343
-                //mp.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
-
-                // 通过异步的方式装载媒体资源
-                mp.prepareAsync();
-
-            } catch (Exception e) {
-                STATE =2;
+        try {
+            if (mp != null) {
+                mp.release();
+                mp = null;
             }
+            mp = new MediaPlayer();
+
+            //mp=MediaPlayer.create(MyActivity.this,Uri.parse(list.get(id).getFilePath()));
+            // 设置指定的流媒体地址
+            mp.setDataSource(fileInfo.getFilePath());
+
+            // 设置音频流的类型
+            mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mp.setOnPreparedListener(this);
+            mp.setOnErrorListener(this);
+            mp.setOnCompletionListener(this);
+            //Using wake locks  http://blog.csdn.net/shichaosong/article/details/8125343
+            //mp.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+
+            isprepare = true;
+            // 通过异步的方式装载媒体资源
+            mp.prepareAsync();
+
+        } catch (Exception e) {
+            STATE = 2;
+        }
 
     }
 
@@ -162,7 +174,9 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
 
+
         mediaPlayer.start();
+        isprepare = false;
         new Thread(mRunnable).start();
 
     }
@@ -173,6 +187,11 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
         @Override
         public void run() {
             while (!Thread.currentThread().isInterrupted()) {
+
+                if (isprepare) {
+                    //正在准备播放资源
+                    return;
+                }
 
                 //发送广播，更新进度条
                 Intent intent = new Intent(ACTION_progressbar);
@@ -190,6 +209,8 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
                 } catch (Exception e) {
                     intent.putExtra("Duration", 0);
                 }
+
+                intent.putExtra("isDown", isOk);
                 BaseApp.AppContext.sendBroadcast(intent);
 
 
@@ -198,11 +219,12 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
                 intent1.putExtra("id", id);//文件id（1,2,3） 不是路径
                 intent1.putExtra("STATE", STATE);//文件id（1,2,3） 不是路径
                 intent1.putExtra("playstate", playstate);//需要运算的用int，另外用字符串
+
                 BaseApp.AppContext.sendBroadcast(intent1);
 
 
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(500);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -223,7 +245,7 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
         if (id <= list.size()) {
             initMediaPlayer();
         } else {
-            id=0;
+            id = 0;
             initMediaPlayer();
         }
     }
@@ -246,6 +268,18 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
         return intentFilter;
     }
 
+    private void getFileInfo() {
+        try {
+            fileInfo = db.findFirst(Selector.from(FileInfo.class).where("id",
+                    "=", id));
+
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private static boolean isOk = false;
     private BroadcastReceiver receiver = new BroadcastReceiver() {
 
         @Override
@@ -257,13 +291,39 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
 
             if (intent.getAction().equals(ACTION_PLAY)) {
                 Log.e("service BroadcastReceiver ", "接收广播");
-                ViewUtil.Loge("MyService==="+""+"=======" + id + "===" + STATE + "===" +
+                ViewUtil.Loge("MyService===" + "" + "=======" + id + "===" + STATE + "===" +
                         playstate);
 
-                if (STATE == 9) {
-                    STATE =1;
-                    //上。下一首 。listview 进来
+                //上。下一首 。listview 进来
+                if (STATE == 7 || STATE == 8 || STATE == 9) {
+
+                    if (STATE == 7) {
+                        if ((id - 1) >= 0) {
+                            id = id - 1;
+                        } else {
+                            id = 0;
+                            Toast.makeText(BaseApp.AppContext, "已经是第一首歌", Toast.LENGTH_SHORT).show();
+                        }
+                    } else if (STATE == 8) {
+                        if ((id + 1) <= list.size()) {
+                            id = (id + 1);
+                        } else {
+                            id = list.size();
+                            Toast.makeText(BaseApp.AppContext, "已经是最后一首歌", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    STATE = 1;
+                    isOk=false;
+                    getFileInfo();
                     initMediaPlayer();//直接播放
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            isOk = GetGeCi.getGeCi(fileInfo.getFilePath(),id);//musicId
+                        }
+                    }).start();
+
+
                 } else if (STATE == 1 || STATE == 2) {
                     startPlay();//判断状态 后决定是否播放
                 }
