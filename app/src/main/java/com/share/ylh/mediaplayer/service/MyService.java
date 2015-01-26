@@ -1,7 +1,5 @@
 package com.share.ylh.mediaplayer.service;
 
-import android.app.Notification;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,23 +7,21 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
-
 import com.lidroid.xutils.DbUtils;
 import com.lidroid.xutils.db.sqlite.Selector;
 import com.lidroid.xutils.exception.DbException;
-import com.share.ylh.mediaplayer.R;
 import com.share.ylh.mediaplayer.base.BaseApp;
 import com.share.ylh.mediaplayer.domain.FileInfo;
 import com.share.ylh.mediaplayer.domain.LyricObject;
-import com.share.ylh.mediaplayer.ui.PlayActivity;
 import com.share.ylh.mediaplayer.utils.GetGeCi;
 import com.share.ylh.mediaplayer.utils.ViewUtil;
-
 import java.util.List;
-import java.util.TreeMap;
+
 
 /**
  * User: 余芦煌(504367857@qq.com)
@@ -41,6 +37,9 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
     private static final String ACTION_SAVESTATE = "com.share.ylh.mediaplayer.SAVESTATE";
     //myservice->MyActivity 更新进度条
     private static final String ACTION_progressbar = "com.share.ylh.mediaplayer.progressbar";
+    //歌词下载后发送广播
+    private static final String ACTION_DOWNLOADLYRIC = "com.share.ylh.mediaplayer.DOWNLOADLYRIC";
+    private static  final int DOWNLOAD=2;
     private static int id = 1;  //文件id
     private int STATE;//1:play,2:psuse,3:stop;//7：上一首 8：下一首
     private int playstate = 4;//  4:顺序播放;5：单曲循环播放；6：随机；
@@ -52,10 +51,21 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
 
     private IntentFilter intentFilter = null;
 
+    private Handler handler =new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if(msg.what==DOWNLOAD){
+                //TODO 发送广播 activity好像没接到 歌词显示也有问题
+                Intent intent2 =new Intent(ACTION_DOWNLOADLYRIC);
+                BaseApp.AppContext.sendBroadcast(intent2);
+            }
+        }
+    };
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-
+    public void onCreate() {
+        super.onCreate();
 
         if (mp == null) {
             synchronized (MyService.class) {
@@ -67,6 +77,10 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
                 }
             }
         }
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -174,7 +188,6 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
 
-
         mediaPlayer.start();
         isprepare = false;
         new Thread(mRunnable).start();
@@ -186,6 +199,7 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
 
         @Override
         public void run() {
+
             while (!Thread.currentThread().isInterrupted()) {
 
                 if (isprepare) {
@@ -210,7 +224,6 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
                     intent.putExtra("Duration", 0);
                 }
 
-                intent.putExtra("isDown", isOk);
                 BaseApp.AppContext.sendBroadcast(intent);
 
 
@@ -224,7 +237,7 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
 
 
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(600);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -276,10 +289,8 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
         } catch (DbException e) {
             e.printStackTrace();
         }
-
     }
 
-    private static boolean isOk = false;
     private BroadcastReceiver receiver = new BroadcastReceiver() {
 
         @Override
@@ -302,26 +313,23 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
                             id = id - 1;
                         } else {
                             id = 0;
-                            Toast.makeText(BaseApp.AppContext, "已经是第一首歌", Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(BaseApp.AppContext, "已经是第一首歌",
+                                   // Toast.LENGTH_SHORT).show();
                         }
                     } else if (STATE == 8) {
                         if ((id + 1) <= list.size()) {
                             id = (id + 1);
                         } else {
                             id = list.size();
-                            Toast.makeText(BaseApp.AppContext, "已经是最后一首歌", Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(BaseApp.AppContext, "已经是最后一首歌",
+                                  //  Toast.LENGTH_SHORT).show();
                         }
                     }
                     STATE = 1;
-                    isOk=false;
                     getFileInfo();
+
                     initMediaPlayer();//直接播放
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            isOk = GetGeCi.getGeCi(fileInfo.getFilePath(),id);//musicId
-                        }
-                    }).start();
+                    downGeCi(fileInfo.getFilePath(),id);
 
 
                 } else if (STATE == 1 || STATE == 2) {
@@ -330,4 +338,32 @@ public class MyService extends Service implements MediaPlayer.OnPreparedListener
             }
         }
     };
+
+
+    /**
+     * 通过thread 下载歌词
+     * 通过handler发送广播显示歌词
+     */
+    private void downGeCi(final String filepath, final int musicId){
+
+        try {
+            if(db.findAll(Selector.from(LyricObject.class).where
+                    ("musciId", "=", id))==null){
+                return;
+            }
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                GetGeCi.getGeCi(filepath,musicId);
+
+                Message message=Message.obtain();
+                message.what=DOWNLOAD;
+                handler.sendMessage(message);
+
+            }
+        }).start();
+    }
 }

@@ -3,9 +3,7 @@ package com.share.ylh.mediaplayer.utils;
 import android.util.Log;
 
 import com.lidroid.xutils.DbUtils;
-import com.lidroid.xutils.exception.DbException;
 import com.share.ylh.mediaplayer.base.BaseApp;
-import com.share.ylh.mediaplayer.domain.FileInfo;
 import com.share.ylh.mediaplayer.domain.LyricObject;
 
 import java.io.BufferedReader;
@@ -17,7 +15,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.TreeMap;
 
 /**
  * User: 余芦煌(504367857@qq.com)
@@ -64,7 +61,7 @@ public class GetGeCi {
                 int ms = Integer.parseInt(content.substring(7, 9)); //毫秒
                 int currTime = (m * 60 + s) * 1000 + ms * 10;
 
-                lyricObject.setMusciId(musicId);
+                lyricObject.setMusicId(musicId);
                 lyricObject.setBegintime(currTime);
                 //处理重复歌词 ，重复出现的歌词为空
                 if ("".equals(content.substring(10))) {

@@ -9,7 +9,7 @@ package com.share.ylh.mediaplayer.domain;
 public class LyricObject {
 
     private int id;
-    private int musciId;//对应歌曲
+    private int musicId;//对应歌曲
     private int begintime; // 开始时间
     private int endtime; // 结束时间
     private int timeline; // 单句歌词用时
@@ -24,12 +24,12 @@ public class LyricObject {
     }
 
 
-    public int getMusciId() {
-        return musciId;
+    public int getMusicId() {
+        return musicId;
     }
 
-    public void setMusciId(int musciId) {
-        this.musciId = musciId;
+    public void setMusicId(int musicId) {
+        this.musicId = musicId;
     }
 
     public int getBegintime() {

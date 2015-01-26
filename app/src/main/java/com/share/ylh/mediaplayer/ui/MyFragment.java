@@ -6,11 +6,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.lidroid.xutils.DbUtils;
 import com.lidroid.xutils.db.sqlite.Selector;
@@ -20,15 +25,12 @@ import com.share.ylh.mediaplayer.base.BaseApp;
 import com.share.ylh.mediaplayer.domain.FileInfo;
 import com.share.ylh.mediaplayer.domain.LyricObject;
 import com.share.ylh.mediaplayer.domain.MMediaPlayer;
-import com.share.ylh.mediaplayer.utils.GetGeCi;
 import com.share.ylh.mediaplayer.utils.ViewUtil;
 
-import java.util.Iterator;
 import java.util.List;
-import java.util.TreeMap;
 
 
-public class MyActivityOO extends Activity {
+public class MyFragment extends Fragment {
 
     //2activity=>myservice 播放音乐
     private static final String ACTION_PLAY = "com.share.ylh.mediaplayer.PLAY";
@@ -50,37 +52,31 @@ public class MyActivityOO extends Activity {
 
     private static MMediaPlayer mMediaPlayer;
     private static boolean isDownLoad;
+    LocalBroadcastManager broadcastManager;
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_my);
-
-        initView();
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View v=inflater.inflate(R.layout.activity_my,container,false);
+        initView(v);
         initEvent();
         mMediaPlayer = MMediaPlayer.get(list);//初始化 MMediaPlayer
+        return v;
     }
 
 
-    private void initView() {
 
-        try {
-            db = DbUtils.create(this);
-            list = db.findAll(FileInfo.class);//通过类型查找
-            Log.e("AAAAAAAA", list.size() + "");
-        } catch (DbException e) {
-            e.printStackTrace();
-        }
 
-        play = (ImageView) findViewById(R.id.playerplaybtn);
-        pause = (ImageView) findViewById(R.id.playerpausebtn);
-        pre = (ImageView) findViewById(R.id.playerprebtn);
-        next = (ImageView) findViewById(R.id.playernextbtn);
-        repeat = (ImageView) findViewById(R.id.repeat);
-        shuffle = (ImageView) findViewById(R.id.shuffle);
-        replay = (ImageView) findViewById(R.id.replay);
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+    private void initView(View v) {
+
+        play = (ImageView) v.findViewById(R.id.playerplaybtn);
+        pause = (ImageView) v.findViewById(R.id.playerpausebtn);
+        pre = (ImageView) v.findViewById(R.id.playerprebtn);
+        next = (ImageView) v.findViewById(R.id.playernextbtn);
+        repeat = (ImageView) v.findViewById(R.id.repeat);
+        shuffle = (ImageView) v.findViewById(R.id.shuffle);
+        replay = (ImageView) v.findViewById(R.id.replay);
+        progressBar = (ProgressBar) v.findViewById(R.id.progressBar);
 
     }
 
@@ -123,6 +119,15 @@ public class MyActivityOO extends Activity {
 
 
     private void initEvent() {
+
+        try {
+            db = DbUtils.create(getActivity());
+            list = db.findAll(FileInfo.class);//通过类型查找
+            Log.e("AAAAAAAA", list.size() + "");
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        broadcastManager=LocalBroadcastManager.getInstance(getActivity());
 
         //播放
         play.setOnClickListener(new View.OnClickListener() {
@@ -204,7 +209,8 @@ public class MyActivityOO extends Activity {
         progressBar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setProgress(100);
+
+                getActivity().setProgress(100);
             }
         });
     }
@@ -221,32 +227,29 @@ public class MyActivityOO extends Activity {
     }
 
     @Override
-    protected void onStart() {
+    public void onStart() {
         super.onStart();
     }
 
 
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         super.onDestroy();
     }
 
     @Override
-    protected void onPause() {
+    public void onPause() {
         super.onPause();
         // 解除注册
-        unregisterReceiver(receiver);
+        broadcastManager.unregisterReceiver(receiver);
     }
 
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
 
-//        IntentFilter dynamic_filter = new IntentFilter();
-//        dynamic_filter.addAction("com.share.ylh.mediaplayer.broatcast");//添加动态广播的Action
-//        registerReceiver(receiver, dynamic_filter);  // 注册自定义动态广播消息
         // 接收广播
-        registerReceiver(receiver, init());
+        broadcastManager.registerReceiver(receiver, init());
     }
 
     private IntentFilter init() {
