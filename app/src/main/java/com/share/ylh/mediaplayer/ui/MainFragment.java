@@ -30,10 +30,6 @@ public class MainFragment extends FragmentActivity {
             fragmentManager.beginTransaction()
                     .add(R.id.playFragment, fragment)
                     .commit();
-
-
         }
     }
-
-
 }
